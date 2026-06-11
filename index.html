@@ -417,22 +417,25 @@
 
       <div class="lg:col-span-7 fade-up" style="transition-delay:.1s">
         <form class="bg-white border border-black/10 p-8 lg:p-10" onsubmit="handleSubmit(event)">
+          <input type="hidden" name="_subject" value="New lead from HB Technology & Agency website">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_captcha" value="false">
           <div class="grid sm:grid-cols-2 gap-5">
             <div>
               <label class="text-[11px] font-mono uppercase tracking-wider text-ink/50">Full Name</label>
-              <input required type="text" placeholder="Your name" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
+              <input required type="text" name="name" placeholder="Your name" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
             </div>
             <div>
               <label class="text-[11px] font-mono uppercase tracking-wider text-ink/50">Company Name</label>
-              <input type="text" placeholder="Company" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
+              <input type="text" name="company" placeholder="Company" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
             </div>
             <div class="sm:col-span-2">
               <label class="text-[11px] font-mono uppercase tracking-wider text-ink/50">Email Address</label>
-              <input required type="email" placeholder="you@company.com" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
+              <input required type="email" name="email" placeholder="you@company.com" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors" />
             </div>
             <div class="sm:col-span-2">
               <label class="text-[11px] font-mono uppercase tracking-wider text-ink/50">Service Interest</label>
-              <select required class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base transition-colors appearance-none cursor-pointer">
+              <select required name="service" class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base transition-colors appearance-none cursor-pointer">
                 <option value="" disabled selected>Select a service</option>
                 <option>IT Service</option>
                 <option>Growth Marketing</option>
@@ -442,7 +445,7 @@
             </div>
             <div class="sm:col-span-2">
               <label class="text-[11px] font-mono uppercase tracking-wider text-ink/50">Message</label>
-              <textarea required rows="4" placeholder="Tell us about your project..." class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors resize-none"></textarea>
+              <textarea required rows="4" name="message" placeholder="Tell us about your project..." class="w-full mt-2 bg-transparent border-b border-black/15 py-2.5 text-base placeholder:text-ink/30 transition-colors resize-none"></textarea>
             </div>
           </div>
 
@@ -537,18 +540,34 @@
       document.querySelectorAll('section:first-of-type .fade-up').forEach(el => el.classList.add('in'));
     });
 
-    // Form (prototype only — no backend)
-    function handleSubmit(e) {
+    // Form — submits via FormSubmit AJAX
+    async function handleSubmit(e) {
       e.preventDefault();
-      const btn = e.target.querySelector('button[type=submit]');
-      const original = btn.innerHTML;
-      btn.innerHTML = 'Inquiry sent ✓';
-      btn.style.background = '#0A0A0A';
-      setTimeout(() => {
-        e.target.reset();
-        btn.innerHTML = original;
-        btn.style.background = '';
-      }, 2200);
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Sending...';
+      try {
+        const response = await fetch('https://formsubmit.co/ajax/support@hbagencyglobal.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form)))
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        submitBtn.innerHTML = 'Inquiry sent ✓';
+        submitBtn.style.background = '#0A0A0A';
+        setTimeout(() => {
+          form.reset();
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.style.background = '';
+        }, 2200);
+      } catch (err) {
+        alert('Sorry, something went wrong. Please try again or email us directly at support@hbagencyglobal.com.');
+        submitBtn.innerHTML = originalBtnText;
+      } finally {
+        submitBtn.disabled = false;
+      }
     }
   </script>
 </body>
